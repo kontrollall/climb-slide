@@ -54,27 +54,11 @@ Tab:CreateButton("Teleport", function()
     local character = player.Character or player.CharacterAdded:Wait()
     local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 
-    local targetPosition = Vector3.new(4, 7021, 15045) -- Posição alvo
-    local speed = 200 -- studs por segundo, ajuste a vontade
-
-    local function fireTouchInterest()
-        local touchInterest = workspace:FindFirstChild("Maps")
-            and workspace.Maps:FindFirstChild("Map_1")
-            and workspace.Maps.Map_1:FindFirstChild("MainPart")
-            and workspace.Maps.Map_1.MainPart:FindFirstChild("Ending_Model")
-            and workspace.Maps.Map_1.MainPart.Ending_Model:FindFirstChild("Hitbox_Trophy")
-            and workspace.Maps.Map_1.MainPart.Ending_Model.Hitbox_Trophy:FindFirstChild("TouchInterest")
-
-        if touchInterest then
-            touchInterest:Fire(humanoidRootPart)
-            print("TouchInterest disparado no Hitbox_Trophy!")
-        else
-            warn("TouchInterest não encontrado em Hitbox_Trophy!")
-        end
-    end
+    local targetPosition = Vector3.new(4, 7021, 15045) -- Posição alvo inicial do teleporte suave
+    local speed = 9999 -- studs por segundo, ajuste a vontade
 
     -- Função para mover suavemente até o destino
-    local function moveToPosition(targetPos, speed)
+    local function moveToPosition(targetPos, speed, onComplete)
         local connection
         connection = RunService.Heartbeat:Connect(function(deltaTime)
             if not humanoidRootPart or not humanoidRootPart.Parent then
@@ -91,14 +75,9 @@ Tab:CreateButton("Teleport", function()
                 connection:Disconnect()
                 print("Chegou ao destino!")
 
-                -- Dispara o touch interest imediatamente
-                fireTouchInterest()
-
-                -- Depois de 1 segundo, dispara de novo
-                task.delay(1, function()
-                    fireTouchInterest()
-                end)
-
+                if onComplete then
+                    onComplete()
+                end
                 return
             end
 
@@ -108,7 +87,24 @@ Tab:CreateButton("Teleport", function()
         end)
     end
 
-    moveToPosition(targetPosition, speed)
+    -- Função para teleportar instantaneamente para o Trophy
+    local function teleportToTrophy()
+        local trophy = workspace:FindFirstChild("Maps")
+            and workspace.Maps:FindFirstChild("Map_1")
+            and workspace.Maps.Map_1:FindFirstChild("MainPart")
+            and workspace.Maps.Map_1.MainPart:FindFirstChild("Ending_Model")
+            and workspace.Maps.Map_1.MainPart.Ending_Model:FindFirstChild("Trophy_Model")
+            and workspace.Maps.Map_1.MainPart.Ending_Model.Trophy_Model:FindFirstChild("Trophy")
+
+        if trophy then
+            humanoidRootPart.CFrame = trophy.CFrame + Vector3.new(0, 3, 0) -- Eleva 3 studs pra não prender no chão
+            print("Teletransportado para o Trophy!")
+        else
+            warn("Trophy não encontrado para teleporte!")
+        end
+    end
+
+    moveToPosition(targetPosition, speed, teleportToTrophy)
 end)
 
 
