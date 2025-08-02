@@ -39,70 +39,53 @@ Tab:CreateButton("Give OP Pet", function()
 	end
 end)
 
--- Função para mover o personagem suavemente até uma posição (substitui o 'Twenty')
-local function MovePlayerSmoothlyToPosition(player, targetPosition)
-	local RunService = game:GetService("RunService")
-	if not player then return end
 
-	local character = player.Character or player.CharacterAdded:Wait()
-	local hrp = character:FindFirstChild("HumanoidRootPart")
-	if not hrp then
-		warn("HumanoidRootPart não encontrado no personagem!")
-		return
-	end
 
-	local speed = 0
-	local maxSpeed = 50
-	local acceleration = 15
-	local decelerationDistance = 10
-	local reached = false
+Tab:CreateButton("Teleport", function()
+    local Players = game:GetService("Players")
+    local RunService = game:GetService("RunService")
 
-	local connection
-	connection = RunService.Heartbeat:Connect(function(dt)
-		if reached then
-			if connection then
-				connection:Disconnect()
-				connection = nil
-			end
-			return
-		end
+    local player = Players.LocalPlayer
+    if not player then
+        warn("Jogador local não encontrado!")
+        return
+    end
 
-		local currentPos = hrp.Position
-		local directionVector = targetPosition - currentPos
-		local distance = directionVector.Magnitude
+    local character = player.Character or player.CharacterAdded:Wait()
+    local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 
-		if distance < 1 then
-			reached = true
-			return
-		end
+    local targetPosition = Vector3.new(4, 7021, 15045) -- Posição alvo
+    local speed = 200 -- studs por segundo, ajuste a vontade
 
-		local direction = directionVector.Unit
+    -- Função para mover suavemente até o destino
+    local function moveToPosition(targetPos, speed)
+        local connection
+        connection = RunService.Heartbeat:Connect(function(deltaTime)
+            if not humanoidRootPart or not humanoidRootPart.Parent then
+                connection:Disconnect()
+                return
+            end
 
-		-- Acelera enquanto longe, desacelera perto
-		if distance > decelerationDistance then
-			speed = math.min(speed + acceleration * dt, maxSpeed)
-		else
-			speed = math.clamp(speed, 10, maxSpeed) * (distance / decelerationDistance)
-		end
+            local currentPos = humanoidRootPart.Position
+            local direction = (targetPos - currentPos)
+            local distance = direction.Magnitude
 
-		-- Move HumanoidRootPart suavemente
-		local moveDelta = direction * speed * dt
-		hrp.CFrame = hrp.CFrame + moveDelta
-	end)
-end
+            if distance < 1 then
+                humanoidRootPart.CFrame = CFrame.new(targetPos)
+                connection:Disconnect()
+                print("Chegou ao destino!")
+                return
+            end
 
--- Botão para ativar o teleporte suave substituindo o "Twenty"
-Tab:CreateButton("Teleport Smooth (Twenty Style)", function()
-	local player = game.Players.LocalPlayer
-	if not player then
-		warn("LocalPlayer não encontrado!")
-		return
-	end
+            local moveDistance = math.min(speed * deltaTime, distance)
+            local moveVector = direction.Unit * moveDistance
+            humanoidRootPart.CFrame = humanoidRootPart.CFrame + moveVector
+        end)
+    end
 
-	local targetPosition = Vector3.new(4, 7021, 15045) -- posição alvo
-
-	MovePlayerSmoothlyToPosition(player, targetPosition)
+    moveToPosition(targetPosition, speed)
 end)
+
 
 -- Toggle para Auto Slide (moeda)
 Tab:CreateToggle("Auto Slide (coin)", function(enabled)
