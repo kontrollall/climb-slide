@@ -55,7 +55,23 @@ Tab:CreateButton("Teleport", function()
     local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 
     local targetPosition = Vector3.new(4, 7021, 15045) -- Posição alvo
-    local speed = 1000 -- studs por segundo, ajuste a vontade
+    local speed = 200 -- studs por segundo, ajuste a vontade
+
+    local function fireTouchInterest()
+        local touchInterest = workspace:FindFirstChild("Maps")
+            and workspace.Maps:FindFirstChild("Map_1")
+            and workspace.Maps.Map_1:FindFirstChild("MainPart")
+            and workspace.Maps.Map_1.MainPart:FindFirstChild("Ending_Model")
+            and workspace.Maps.Map_1.MainPart.Ending_Model:FindFirstChild("Hitbox_Trophy")
+            and workspace.Maps.Map_1.MainPart.Ending_Model.Hitbox_Trophy:FindFirstChild("TouchInterest")
+
+        if touchInterest then
+            touchInterest:Fire(humanoidRootPart)
+            print("TouchInterest disparado no Hitbox_Trophy!")
+        else
+            warn("TouchInterest não encontrado em Hitbox_Trophy!")
+        end
+    end
 
     -- Função para mover suavemente até o destino
     local function moveToPosition(targetPos, speed)
@@ -74,6 +90,15 @@ Tab:CreateButton("Teleport", function()
                 humanoidRootPart.CFrame = CFrame.new(targetPos)
                 connection:Disconnect()
                 print("Chegou ao destino!")
+
+                -- Dispara o touch interest imediatamente
+                fireTouchInterest()
+
+                -- Depois de 1 segundo, dispara de novo
+                task.delay(1, function()
+                    fireTouchInterest()
+                end)
+
                 return
             end
 
@@ -85,6 +110,7 @@ Tab:CreateButton("Teleport", function()
 
     moveToPosition(targetPosition, speed)
 end)
+
 
 
 -- Toggle para Auto Slide (moeda)
