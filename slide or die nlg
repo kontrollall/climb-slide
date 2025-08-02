@@ -55,7 +55,7 @@ Tab:CreateButton("Teleport", function()
     local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 
     local targetPosition = Vector3.new(4, 7021, 15045) -- Posição alvo
-    local speed = 200 -- studs por segundo, ajuste a vontade
+    local speed = 1000 -- studs por segundo, ajuste a vontade
 
     -- Função para mover suavemente até o destino
     local function moveToPosition(targetPos, speed)
