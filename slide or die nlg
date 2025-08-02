@@ -1,0 +1,153 @@
+-- Carrega biblioteca externa (verifica se sucesso)
+local success, Library = pcall(function()
+	return loadstring(game:HttpGet("https://raw.githubusercontent.com/bloodball/-back-ups-for-libs/main/wizard"))()
+end)
+
+if not success or not Library then
+	warn("Falha ao carregar a biblioteca externa.")
+	return
+end
+
+local Window = Library:NewWindow("Script")
+
+local Tab = Window:NewSection("Credits: TGMANKASKE")
+
+-- Botão para dar pet OP
+Tab:CreateButton("Give OP Pet", function()
+	print("Tentando dar pet OP...")
+
+	local ReplicatedStorage = game:GetService("ReplicatedStorage")
+	local rPets = ReplicatedStorage:FindFirstChild("R_Pets")
+
+	if not rPets then
+		warn("R_Pets não encontrado em ReplicatedStorage!")
+		return
+	end
+
+	local args = {
+		"Give_Pet",
+		"Pet_Dark_Boshiro"
+	}
+	
+	-- Tenta enviar o evento
+	local success, err = pcall(function()
+		rPets:FireServer(unpack(args))
+	end)
+	if success then
+		print("Pet OP dado com sucesso!")
+	else
+		warn("Erro ao dar pet OP: "..tostring(err))
+	end
+end)
+
+-- Botão para mover "Twenty" levando o jogador suavemente
+Tab:CreateButton("Finish", function()
+	local targetPosition = Vector3.new(4, 7021, 15045)
+	local RunService = game:GetService("RunService")
+	local Players = game:GetService("Players")
+
+	local twenty = workspace:FindFirstChild("Twenty")
+	if not twenty then
+		warn("'Twenty' não encontrado na Workspace!")
+		return
+	end
+
+	local player = Players.LocalPlayer or Players:GetPlayers()[1]
+	if not player then
+		warn("Jogador não encontrado.")
+		return
+	end
+
+	local character = player.Character or player.CharacterAdded:Wait()
+	local hrp = character:FindFirstChild("HumanoidRootPart")
+	if not hrp then
+		warn("HumanoidRootPart do personagem não encontrado.")
+		return
+	end
+
+	if not twenty.PrimaryPart then
+		warn("Defina a PrimaryPart de 'Twenty'.")
+		return
+	end
+
+	-- Posiciona Twenty próximo ao jogador (levemente acima)
+	twenty:SetPrimaryPartCFrame(CFrame.new(hrp.Position + Vector3.new(0, 5, 0)))
+
+	-- Solda o jogador a Twenty para movimentação sincronizada
+	local weld = Instance.new("WeldConstraint")
+	weld.Part0 = twenty.PrimaryPart
+	weld.Part1 = hrp
+	weld.Parent = twenty.PrimaryPart
+
+	local speed = 0
+	local maxSpeed = 50
+	local acceleration = 2
+	local reached = false
+
+	-- Conexão para movimentar Twenty e o jogador suavemente até o alvo
+	local connection
+	connection = RunService.Heartbeat:Connect(function(dt)
+		if reached then
+			if connection then
+				connection:Disconnect()
+				connection = nil
+			end
+			if weld and weld.Parent then
+				weld:Destroy()
+			end
+			return
+		end
+
+		local currentPos = twenty.PrimaryPart.Position
+		local direction = (targetPosition - currentPos).Unit
+		local distance = (targetPosition - currentPos).Magnitude
+
+		if speed < maxSpeed then
+			speed = speed + acceleration * dt
+		end
+
+		local moveStep = direction * speed * dt
+
+		if distance < 2 then
+			reached = true
+			speed = 0
+			return
+		end
+
+		twenty:SetPrimaryPartCFrame(twenty.PrimaryPart.CFrame + moveStep)
+	end)
+end)
+
+-- Toggle para Auto Slide (moeda)
+Tab:CreateToggle("Auto Slide (coin)", function(enabled)
+	_G.GetWins = enabled
+	local ReplicatedStorage = game:GetService("ReplicatedStorage")
+	local rServer = ReplicatedStorage:FindFirstChild("R_Server")
+	local Maps = workspace:FindFirstChild("Maps")
+	local Map1 = Maps and Maps:FindFirstChild("Map_1")
+
+	if not rServer or not Map1 then
+		warn("R_Server ou Map_1 não encontrados.")
+		return
+	end
+
+	if enabled then
+		task.spawn(function()
+			while _G.GetWins do
+				wait(1)
+				local args = {
+					"Slide",
+					Map1
+				}
+
+				local success, err = pcall(function()
+					rServer:FireServer(unpack(args))
+				end)
+
+				if not success then
+					warn("Erro ao ativar Slide: "..tostring(err))
+				end
+			end
+		end)
+	end
+end)
