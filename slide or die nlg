@@ -54,10 +54,23 @@ Tab:CreateButton("Teleport", function()
     local character = player.Character or player.CharacterAdded:Wait()
     local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 
-    local targetPosition = Vector3.new(4, 7021, 15045) -- Posição alvo inicial do teleporte suave
-    local speed = 9999 -- studs por segundo, ajuste a vontade
+    local firstTargetPosition = Vector3.new(4, 7021, 15045) -- Posição fixa inicial
+    local speed = 200 -- velocidade studs/segundo (ajuste se quiser)
 
-    -- Função para mover suavemente até o destino
+    -- Pega o patch (posição final do segundo teleporte)
+    local patchPart = workspace:FindFirstChild("Maps")
+        and workspace.Maps:FindFirstChild("Map_1")
+        and workspace.Maps.Map_1:FindFirstChild("MainPart")
+        and workspace.Maps.Map_1.MainPart:FindFirstChild("Ending_Model")
+        and workspace.Maps.Map_1.MainPart.Ending_Model:FindFirstChild("Trophy_Model")
+        and workspace.Maps.Map_1.MainPart.Ending_Model.Trophy_Model:FindFirstChild("Trophy") -- patch
+
+    if not patchPart then
+        warn("Patch (Trophy) não encontrado no workspace!")
+        return
+    end
+
+    -- Função para mover suavemente até o destino, recebe callback para quando acabar
     local function moveToPosition(targetPos, speed, onComplete)
         local connection
         connection = RunService.Heartbeat:Connect(function(deltaTime)
@@ -87,25 +100,13 @@ Tab:CreateButton("Teleport", function()
         end)
     end
 
-    -- Função para teleportar instantaneamente para o Trophy
-    local function teleportToTrophy()
-        local trophy = workspace:FindFirstChild("Maps")
-            and workspace.Maps:FindFirstChild("Map_1")
-            and workspace.Maps.Map_1:FindFirstChild("MainPart")
-            and workspace.Maps.Map_1.MainPart:FindFirstChild("Ending_Model")
-            and workspace.Maps.Map_1.MainPart.Ending_Model:FindFirstChild("Trophy_Model")
-            and workspace.Maps.Map_1.MainPart.Ending_Model.Trophy_Model:FindFirstChild("Trophy")
-
-        if trophy then
-            humanoidRootPart.CFrame = trophy.CFrame + Vector3.new(0, 3, 0) -- Eleva 3 studs pra não prender no chão
-            print("Teletransportado para o Trophy!")
-        else
-            warn("Trophy não encontrado para teleporte!")
-        end
-    end
-
-    moveToPosition(targetPosition, speed, teleportToTrophy)
+    -- Primeiro teleporta para a posição fixa
+    moveToPosition(firstTargetPosition, speed, function()
+        -- Depois que chegar, teleporta para o patch suavemente
+        moveToPosition(patchPart.Position + Vector3.new(0, 3, 0), speed)
+    end)
 end)
+
 
 
 
