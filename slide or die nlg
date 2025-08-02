@@ -110,36 +110,33 @@ end)
 
 
 
--- Toggle para Auto Slide (moeda)
-Tab:CreateToggle("Auto Slide (coin)", function(enabled)
-	_G.GetWins = enabled
-	local ReplicatedStorage = game:GetService("ReplicatedStorage")
-	local rServer = ReplicatedStorage:FindFirstChild("R_Server")
-	local Maps = workspace:FindFirstChild("Maps")
-	local Map1 = Maps and Maps:FindFirstChild("Map_1")
+Tab:CreateButton("Slide (join first)", function()
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local rServer = ReplicatedStorage:FindFirstChild("R_Server")
+    local Maps = workspace:FindFirstChild("Maps")
+    local Map1 = Maps and Maps:FindFirstChild("Map_1")
 
-	if not rServer or not Map1 then
-		warn("R_Server ou Map_1 não encontrados.")
-		return
-	end
+    if not rServer or not Map1 then
+        warn("R_Server ou Map_1 não encontrados.")
+        return
+    end
 
-	if enabled then
-		task.spawn(function()
-			while _G.GetWins do
-				wait(1)
-				local args = {
-					"Slide",
-					Map1
-				}
+    for i = 1, 3 do
+        local args = {
+            "Slide",
+            Map1
+        }
 
-				local success, err = pcall(function()
-					rServer:FireServer(unpack(args))
-				end)
+        local success, err = pcall(function()
+            rServer:FireServer(unpack(args))
+        end)
 
-				if not success then
-					warn("Erro ao ativar Slide: "..tostring(err))
-				end
-			end
-		end)
-	end
+        if success then
+            print("Slide ativado (" .. i .. "/3)")
+        else
+            warn("Erro ao ativar Slide: " .. tostring(err))
+        end
+
+        wait(1) -- pausa de 1 segundo entre cada ativação, ajuste se quiser
+    end
 end)
